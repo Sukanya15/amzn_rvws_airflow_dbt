@@ -1,0 +1,71 @@
+[0m14:45:09.381791 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x104466550>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1066ed670>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x106999580>]}
+
+
+============================== 14:45:09.384985 | 368d03a2-8e56-4300-9b20-fc33ce8416c4 ==============================
+[0m14:45:09.384985 [info ] [MainThread]: Running with dbt=1.8.7
+[0m14:45:09.385400 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'write_json': 'True', 'log_cache_events': 'False', 'partial_parse': 'True', 'cache_selected_only': 'False', 'warn_error': 'None', 'fail_fast': 'False', 'version_check': 'True', 'log_path': 'logs', 'debug': 'False', 'profiles_dir': '/Users/nfn8y/.dbt', 'use_colors': 'True', 'use_experimental_parser': 'False', 'empty': 'None', 'quiet': 'False', 'no_print': 'None', 'log_format': 'default', 'static_parser': 'True', 'invocation_command': 'dbt init dbt_etl', 'warn_error_options': 'WarnErrorOptions(include=[], exclude=[])', 'target_path': 'None', 'introspect': 'True', 'send_anonymous_usage_stats': 'True'}
+[0m14:45:09.395283 [debug] [MainThread]: Starter project path: /Users/nfn8y/Desktop/Sukanya/JET/Assignment/venv/lib/python3.8/site-packages/dbt/include/starter_project
+[0m14:45:09.399600 [info ] [MainThread]: 
+Your new dbt project "dbt_etl" was created!
+
+For more information on how to configure the profiles.yml file,
+please consult the dbt documentation here:
+
+  https://docs.getdbt.com/docs/configure-your-profile
+
+One more thing:
+
+Need help? Don't hesitate to reach out to us via GitHub issues or on Slack:
+
+  https://community.getdbt.com/
+
+Happy modeling!
+
+[0m14:45:09.399973 [info ] [MainThread]: Setting up your profile.
+[0m14:45:17.615265 [error] [MainThread]: Encountered an error:
+Runtime Error
+  No adapters available. Learn how to install an adapter by going to https://docs.getdbt.com/docs/connect-adapters#install-using-the-cli
+[0m14:45:17.673194 [debug] [MainThread]: Resource report: {"command_name": "init", "command_wall_clock_time": 8.338512, "process_user_time": 0.839582, "process_kernel_time": 0.167803, "process_mem_max_rss": "86441984", "command_success": false, "process_in_blocks": "0", "process_out_blocks": "0"}
+[0m14:45:17.673851 [debug] [MainThread]: Command `dbt init` failed at 14:45:17.673740 after 8.34 seconds
+[0m14:45:17.675271 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x104466550>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1069993d0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x106a56970>]}
+[0m14:45:17.676320 [debug] [MainThread]: Flushing usage events
+[0m14:47:17.651732 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1054414f0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x106fec9d0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x107055a30>]}
+
+
+============================== 14:47:17.654891 | fb125c6c-b850-4f37-b9ad-34aeb0c07ecd ==============================
+[0m14:47:17.654891 [info ] [MainThread]: Running with dbt=1.8.7
+[0m14:47:17.655306 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'write_json': 'True', 'log_cache_events': 'False', 'partial_parse': 'True', 'cache_selected_only': 'False', 'warn_error': 'None', 'fail_fast': 'False', 'debug': 'False', 'log_path': 'logs', 'profiles_dir': '/Users/nfn8y/.dbt', 'version_check': 'True', 'use_colors': 'True', 'use_experimental_parser': 'False', 'no_print': 'None', 'quiet': 'False', 'empty': 'None', 'warn_error_options': 'WarnErrorOptions(include=[], exclude=[])', 'introspect': 'True', 'invocation_command': 'dbt init dbt_etl', 'static_parser': 'True', 'target_path': 'None', 'log_format': 'default', 'send_anonymous_usage_stats': 'True'}
+[0m14:47:17.667338 [info ] [MainThread]: A project called dbt_etl already exists here.
+[0m14:47:17.670554 [debug] [MainThread]: Resource report: {"command_name": "init", "command_success": true, "command_wall_clock_time": 0.0812475, "process_user_time": 0.778523, "process_kernel_time": 0.129375, "process_mem_max_rss": "86097920", "process_in_blocks": "0", "process_out_blocks": "0"}
+[0m14:47:17.670983 [debug] [MainThread]: Command `dbt init` succeeded at 14:47:17.670905 after 0.08 seconds
+[0m14:47:17.671262 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1054414f0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1070c41f0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x105cc0130>]}
+[0m14:47:17.671530 [debug] [MainThread]: Flushing usage events
+[0m14:47:31.664860 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x106c144f0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1084939d0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1084f8a30>]}
+
+
+============================== 14:47:31.668417 | 4d911f33-0404-4e6a-8671-bd27ca813614 ==============================
+[0m14:47:31.668417 [info ] [MainThread]: Running with dbt=1.8.7
+[0m14:47:31.668828 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'log_cache_events': 'False', 'write_json': 'True', 'partial_parse': 'True', 'cache_selected_only': 'False', 'profiles_dir': '/Users/nfn8y/.dbt', 'fail_fast': 'False', 'version_check': 'True', 'log_path': 'logs', 'warn_error': 'None', 'debug': 'False', 'use_colors': 'True', 'use_experimental_parser': 'False', 'no_print': 'None', 'quiet': 'False', 'empty': 'None', 'log_format': 'default', 'introspect': 'True', 'warn_error_options': 'WarnErrorOptions(include=[], exclude=[])', 'static_parser': 'True', 'target_path': 'None', 'invocation_command': 'dbt init dbt_etl', 'send_anonymous_usage_stats': 'True'}
+[0m14:47:31.676994 [debug] [MainThread]: Starter project path: /Users/nfn8y/Desktop/Sukanya/JET/Assignment/venv/lib/python3.8/site-packages/dbt/include/starter_project
+[0m14:47:31.682694 [info ] [MainThread]: 
+Your new dbt project "dbt_etl" was created!
+
+For more information on how to configure the profiles.yml file,
+please consult the dbt documentation here:
+
+  https://docs.getdbt.com/docs/configure-your-profile
+
+One more thing:
+
+Need help? Don't hesitate to reach out to us via GitHub issues or on Slack:
+
+  https://community.getdbt.com/
+
+Happy modeling!
+
+[0m14:47:31.683057 [info ] [MainThread]: Setting up your profile.
+[0m14:48:31.911532 [info ] [MainThread]: Profile dbt_etl written to /Users/nfn8y/.dbt/profiles.yml using target's profile_template.yml and your supplied values. Run 'dbt debug' to validate the connection.
+[0m14:48:31.924677 [debug] [MainThread]: Resource report: {"command_name": "init", "command_success": true, "command_wall_clock_time": 60.30479, "process_user_time": 0.739012, "process_kernel_time": 0.158546, "process_mem_max_rss": "88768512", "process_in_blocks": "0", "process_out_blocks": "0"}
+[0m14:48:31.925647 [debug] [MainThread]: Command `dbt init` succeeded at 14:48:31.925448 after 60.31 seconds
+[0m14:48:31.926537 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x106c144f0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1084f8a30>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x108697be0>]}
+[0m14:48:31.927279 [debug] [MainThread]: Flushing usage events

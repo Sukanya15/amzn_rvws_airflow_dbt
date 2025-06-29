@@ -1,0 +1,68 @@
+# models/snapshots.yml
+version: 2
+
+snapshots: # <--- THIS IS THE NEW KEY!
+  - name: dim_reviewer_scd2 # Name of the table created by the snapshot
+    description: "SCD Type 2 Dimension table for reviewers, tracking changes in reviewer_name over time."
+    columns:
+      - name: reviewer_id
+        description: "The natural (business) key for the reviewer."
+        data_tests:
+          - not_null
+      - name: reviewer_name
+        description: "The name of the reviewer."
+        data_tests:
+          - not_null
+      - name: dbt_scd_id
+        description: "Unique surrogate key for each version of the reviewer record (Foreign Key for fact tables)."
+        data_tests:
+          - unique
+          - not_null
+      - name: dbt_valid_from
+        description: "Timestamp when this version of the reviewer record became valid."
+        data_tests:
+          - not_null
+      - name: dbt_valid_to
+        description: "Timestamp when this version of the reviewer record became invalid (NULL if current version)."
+      - name: dbt_updated_at
+        description: "Internal dbt timestamp when this record was last processed by the snapshot."
+
+  - name: dim_product_scd2 # Name of the table created by the snapshot
+    description: "SCD Type 2 Dimension table for products, tracking changes in title, category, and brand."
+    columns:
+      - name: product_id
+        description: "The natural (business) key for the product."
+        data_tests:
+          - not_null
+      - name: product_title
+        description: "The title of the product."
+        data_tests:
+          - not_null
+      - name: category
+        description: "The category of the product."
+        data_tests:
+          - not_null
+      - name: brand
+        description: "The brand of the product."
+        data_tests:
+          - not_null
+      - name: product_price
+        description: "The price of the product (not tracked for SCD2 changes, but part of the record)."
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 99999999.99
+      - name: dbt_scd_id
+        description: "Unique surrogate key for each version of the product record (Foreign Key for fact tables)."
+        data_tests:
+          - unique
+          - not_null
+      - name: dbt_valid_from
+        description: "Timestamp when this version of the product record became valid."
+        data_tests:
+          - not_null
+      - name: dbt_valid_to
+        description: "Timestamp when this version of the product record became invalid (NULL if current version)."
+      - name: dbt_updated_at
+        description: "Internal dbt timestamp when this record was last processed by the snapshot."

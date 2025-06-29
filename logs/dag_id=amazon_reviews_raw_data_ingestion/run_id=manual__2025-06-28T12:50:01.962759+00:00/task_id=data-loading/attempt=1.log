@@ -1,0 +1,23 @@
+[2025-06-28T12:50:14.156+0000] {taskinstance.py:1159} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: amazon_reviews_raw_data_ingestion.data-loading manual__2025-06-28T12:50:01.962759+00:00 [queued]>
+[2025-06-28T12:50:14.169+0000] {taskinstance.py:1159} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: amazon_reviews_raw_data_ingestion.data-loading manual__2025-06-28T12:50:01.962759+00:00 [queued]>
+[2025-06-28T12:50:14.169+0000] {taskinstance.py:1361} INFO - Starting attempt 1 of 1
+[2025-06-28T12:50:14.189+0000] {taskinstance.py:1382} INFO - Executing <Task(BashOperator): data-loading> on 2025-06-28 12:50:01.962759+00:00
+[2025-06-28T12:50:14.219+0000] {standard_task_runner.py:57} INFO - Started process 1198 to run task
+[2025-06-28T12:50:14.240+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'amazon_reviews_raw_data_ingestion', 'data-loading', 'manual__2025-06-28T12:50:01.962759+00:00', '--job-id', '23', '--raw', '--subdir', 'DAGS_FOLDER/jet_***_app.py', '--cfg-path', '/tmp/tmp_i88qje6']
+[2025-06-28T12:50:14.266+0000] {standard_task_runner.py:85} INFO - Job 23: Subtask data-loading
+[2025-06-28T12:50:14.425+0000] {task_command.py:416} INFO - Running <TaskInstance: amazon_reviews_raw_data_ingestion.data-loading manual__2025-06-28T12:50:01.962759+00:00 [running]> on host a2bf817b2ea7
+[2025-06-28T12:50:14.593+0000] {taskinstance.py:1662} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='amazon_reviews_raw_data_ingestion' AIRFLOW_CTX_TASK_ID='data-loading' AIRFLOW_CTX_EXECUTION_DATE='2025-06-28T12:50:01.962759+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2025-06-28T12:50:01.962759+00:00'
+[2025-06-28T12:50:14.609+0000] {subprocess.py:63} INFO - Tmp dir root location: /tmp
+[2025-06-28T12:50:14.612+0000] {subprocess.py:75} INFO - Running command: ['/bin/bash', '-c', 'python /opt/***/utils/load_raw_data.py']
+[2025-06-28T12:50:14.682+0000] {subprocess.py:86} INFO - Output:
+[2025-06-28T12:50:15.052+0000] {subprocess.py:93} INFO - python: can't open file '/opt/***/utils/load_raw_data.py': [Errno 2] No such file or directory
+[2025-06-28T12:50:15.070+0000] {subprocess.py:97} INFO - Command exited with return code 2
+[2025-06-28T12:50:15.270+0000] {taskinstance.py:1937} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/bash.py", line 210, in execute
+    raise AirflowException(
+airflow.exceptions.AirflowException: Bash command failed. The command returned a non-zero exit code 2.
+[2025-06-28T12:50:15.300+0000] {taskinstance.py:1400} INFO - Marking task as FAILED. dag_id=amazon_reviews_raw_data_ingestion, task_id=data-loading, execution_date=20250628T125001, start_date=20250628T125014, end_date=20250628T125015
+[2025-06-28T12:50:15.343+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 23 for task data-loading (Bash command failed. The command returned a non-zero exit code 2.; 1198)
+[2025-06-28T12:50:15.410+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 1
+[2025-06-28T12:50:15.511+0000] {taskinstance.py:2778} INFO - 0 downstream tasks scheduled from follow-on schedule check

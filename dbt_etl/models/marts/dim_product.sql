@@ -1,0 +1,9 @@
+-- -- models/marts/dim_product.sql
+-- SELECT
+--     product_id,
+--     COALESCE(product_title, 'Unknown Product Title') AS product_title,
+--     COALESCE(product_brand, 'Unknown Brand') AS brand,
+--     COALESCE(first_category, sales_category, 'Uncategorized') AS category,
+--     COALESCE(product_price, 0.0) AS price
+-- FROM
+--     {{ ref('processed_metadata_category') }}

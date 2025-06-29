@@ -1,0 +1,181 @@
+# models/marts/schema.yml
+version: 2
+
+models:
+  - name: dim_reviewer
+    description: "Dimension table for reviewers"
+    columns:
+      - name: reviewer_id
+        description: "Unique identifier for the reviewer"
+        tests:
+          - unique
+          - not_null
+      - name: reviewer_name
+        description: "Name of the reviewer"
+        tests:
+          - not_null # We've handled filling nulls in the SQL
+          # Add a regex test if you want to check for "gibberish"
+          # - dbt_expectations.expect_column_values_to_match_regex:
+          #     regex: '^[a-zA-Z\s\.\-]*$' # Allows letters, spaces, periods, hyphens. Adjust as needed.
+      - name: review_text
+        description: "The full text of the review"
+      - name: sentiment
+        description: "Sentiment of the review (Positive, Negative, Neutral)"
+        tests:
+          - accepted_values:
+              values: ['Positive', 'Negative', 'Neutral', NULL] # NULL is possible if review_text was null or analysis failed
+          # You might want to ensure a certain percentage is not null for sentiment if it's crucial.
+          # - dbt_expectations.expect_column_values_to_not_be_null_percent:
+          #     percent_null: 0.05 # Max 5% nulls
+
+      - name: review_date
+        description: "Date of the review"
+        tests:
+          - not_null # If you decided to fill null dates with a default, this can be not_null. If truly nulls are allowed, remove.
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: date
+
+  - name: dim_product
+    description: "Dimension table for products"
+    columns:
+      - name: product_id
+        description: "Unique identifier for the product"
+        tests:
+          - unique
+          - not_null
+      - name: product_title
+        description: "Title of the product"
+        tests:
+          - not_null # We've handled filling nulls in the SQL
+          # - dbt_expectations.expect_column_values_to_match_regex:
+          #     regex: '^[a-zA-Z0-9\s\.\-,\(\)]*$' # Adjust regex to fit expected product titles
+      - name: brand
+        description: "Brand of the product"
+        tests:
+          - not_null # We've handled filling nulls in the SQL
+      - name: category
+        description: "Category of the product"
+        tests:
+          - not_null # We've handled filling nulls in the SQL
+      - name: price
+        description: "Price of the product"
+        tests:
+          - not_null # We've handled filling nulls in the SQL
+          - dbt_expectations.expect_column_values_to_be_in_type_list:
+              column_type_list: ['numeric', 'float', 'double precision'] # For PostgreSQL
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 99999999.99 # Adjust max price as needed
+
+  - name: dim_date
+    description: "Dimension table for dates"
+    columns:
+      - name: date_sk
+        description: "Surrogate key for the date"
+        tests:
+          - unique
+          - not_null
+          - dbt_expectations.expect_column_values_to_match_regex:
+              regex: '^\d{8}$' # YYYYMMDD format
+      - name: date
+        description: "Full date"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: date
+      - name: day_of_month
+        description: "Day of the month (1-31)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 31
+      - name: month
+        description: "Month number (1-12)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 12
+      - name: month_name
+        description: "Name of the month (e.g., 'January')"
+        tests:
+          - not_null
+      - name: quarter
+        description: "Quarter number (1-4)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 4
+      - name: year
+        description: "Year"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 2000 # Adjust to your expected date range
+              max_value: 2030 # Adjust to your expected date range
+
+  - name: fact_review
+    description: "Fact table containing review events and their associated dimensions, linking to SCD2 dimensions."
+    # Define the unique key for incremental processing.
+    # This should match the 'unique_key' in your fact_review.sql config.
+    meta:
+      dbt_incremental_strategy: merge # Although dbt defaults, explicit is good for docs
+      unique_key: review_sk # <--- ADD/UPDATE THIS FOR INCREMENTAL
+
+    columns:
+      - name: review_sk
+        description: "Surrogate key for the review fact (Primary Key, unique per review event)."
+        tests:
+          - unique
+          - not_null
+      - name: reviewer_sk # <--- UPDATED: This is now the SCD2 surrogate key
+        description: "Foreign Key to the dim_reviewer_scd2 table (linking to the correct reviewer version at review time)."
+        tests:
+          - not_null
+          - relationships: # Referential Integrity Test!
+              to: ref('dim_reviewer_scd2') # <--- UPDATED: Point to the SCD2 snapshot table
+              field: dbt_scd_id           # <--- UPDATED: Point to the dbt_scd_id in the snapshot
+      - name: product_sk # <--- UPDATED: This is now the SCD2 surrogate key
+        description: "Foreign Key to the dim_product_scd2 table (linking to the correct product version at review time)."
+        tests:
+          - not_null
+          - relationships: # Referential Integrity Test!
+              to: ref('dim_product_scd2') # <--- UPDATED: Point to the SCD2 snapshot table
+              field: dbt_scd_id           # <--- UPDATED: Point to the dbt_scd_id in the snapshot
+      - name: date_sk
+        description: "Foreign Key to the dim_date table."
+        tests:
+          - not_null
+          - relationships: # Referential Integrity Test!
+              to: ref('dim_date')
+              field: date_sk
+      - name: rating
+        description: "The numerical rating given in the review (e.g., 1.0 to 5.0)."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1.0
+              max_value: 5.0
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: float
+
+      - name: review_text # <--- NEW COLUMN
+        description: "The full text of the review. Stored directly in the fact table."
+        tests:
+          - not_null # If review text is always expected
+
+      - name: sentiment # <--- NEW COLUMN
+        description: "Sentiment of the review (Positive, Negative, Neutral), derived from review_text. Stored directly in the fact table."
+        tests:
+          - accepted_values:
+              values: ['Positive', 'Negative', 'Neutral', 'None'] # 'None' if analysis failed/text was empty
+          - not_null # If sentiment is expected to always be derived
+
+      - name: ingestion_timestamp # <--- NEW COLUMN (important for incremental)
+        description: "Timestamp when the raw review record was ingested into the source system."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: timestamp # Or timestamp without time zone, depending on your DB type

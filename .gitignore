@@ -1,0 +1,41 @@
+# Python virtual environments
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# dbt artifacts and logs
+dbt_project/target/
+dbt_project/logs/
+dbt_project/dbt_packages/
+dbt_project/profiles.yml 
+.dbt/
+!/Users/nfn8y/.dbt/profiles.yml 
+
+# Airflow specific (if applicable)
+airflow/__pycache__/
+airflow/logs/
+airflow/dags_local_data/ 
+airflow/dags_tmp/
+airflow/airflow.cfg 
+airflow/webserver_config.py
+airflow/unittests.cfg
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# Credentials or sensitive files
+*.env
+.env
+
+#All log files
+*.log
+
+#All imported data files
+*.csv

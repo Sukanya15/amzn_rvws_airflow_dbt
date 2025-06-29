@@ -1,0 +1,56 @@
+[2025-06-29T11:05:08.158+0000] {taskinstance.py:1159} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: amazon_reviews_raw_data_ingestion.data_loading manual__2025-06-29T11:05:04.301056+00:00 [queued]>
+[2025-06-29T11:05:08.179+0000] {taskinstance.py:1159} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: amazon_reviews_raw_data_ingestion.data_loading manual__2025-06-29T11:05:04.301056+00:00 [queued]>
+[2025-06-29T11:05:08.179+0000] {taskinstance.py:1361} INFO - Starting attempt 1 of 1
+[2025-06-29T11:05:08.225+0000] {taskinstance.py:1382} INFO - Executing <Task(BashOperator): data_loading> on 2025-06-29 11:05:04.301056+00:00
+[2025-06-29T11:05:08.239+0000] {standard_task_runner.py:57} INFO - Started process 135 to run task
+[2025-06-29T11:05:08.247+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'amazon_reviews_raw_data_ingestion', 'data_loading', 'manual__2025-06-29T11:05:04.301056+00:00', '--job-id', '12', '--raw', '--subdir', 'DAGS_FOLDER/jet_***_app.py', '--cfg-path', '/tmp/tmpdxp5oszl']
+[2025-06-29T11:05:08.256+0000] {standard_task_runner.py:85} INFO - Job 12: Subtask data_loading
+[2025-06-29T11:05:08.364+0000] {task_command.py:416} INFO - Running <TaskInstance: amazon_reviews_raw_data_ingestion.data_loading manual__2025-06-29T11:05:04.301056+00:00 [running]> on host 80b6e00099e5
+[2025-06-29T11:05:08.493+0000] {taskinstance.py:1662} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='amazon_reviews_raw_data_ingestion' AIRFLOW_CTX_TASK_ID='data_loading' AIRFLOW_CTX_EXECUTION_DATE='2025-06-29T11:05:04.301056+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2025-06-29T11:05:04.301056+00:00'
+[2025-06-29T11:05:08.497+0000] {subprocess.py:63} INFO - Tmp dir root location: /tmp
+[2025-06-29T11:05:08.500+0000] {subprocess.py:75} INFO - Running command: ['/bin/bash', '-c', 'python3 /opt/***/utils/load_raw_data.py']
+[2025-06-29T11:05:08.512+0000] {subprocess.py:86} INFO - Output:
+[2025-06-29T11:05:34.962+0000] {subprocess.py:93} INFO - Starting raw data ingestion...
+[2025-06-29T11:05:34.973+0000] {subprocess.py:93} INFO - Successfully connected to the database.
+[2025-06-29T11:05:34.973+0000] {subprocess.py:93} INFO - Raw staging tables created or already exist.
+[2025-06-29T11:05:34.975+0000] {subprocess.py:93} INFO - Loading metadata from /opt/***/csv_files/metadata_category_clothing_shoes_and_jewelry_only.csv to stg_metadata_categorized...
+[2025-06-29T11:05:34.977+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from metadata CSV chunk.
+[2025-06-29T11:05:34.977+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from metadata CSV chunk.
+[2025-06-29T11:05:34.978+0000] {subprocess.py:93} INFO -   Loaded/Updated 3033 rows from metadata CSV chunk.
+[2025-06-29T11:05:34.979+0000] {subprocess.py:93} INFO - Finished loading metadata to raw table.
+[2025-06-29T11:05:34.980+0000] {subprocess.py:93} INFO - Loading reviews from /opt/***/csv_files/reviews_Clothing_Shoes_and_Jewelry_5.csv to stg_reviews_categorized...
+[2025-06-29T11:05:34.980+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.981+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.982+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.983+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.983+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.983+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.983+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.983+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.983+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.983+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.983+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.983+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.983+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.984+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.985+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.986+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.986+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.987+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.987+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.987+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.987+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.987+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.987+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.987+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.987+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.987+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.987+0000] {subprocess.py:93} INFO -   Loaded/Updated 10000 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.988+0000] {subprocess.py:93} INFO -   Loaded/Updated 8677 rows from reviews CSV chunk.
+[2025-06-29T11:05:34.989+0000] {subprocess.py:93} INFO - Finished loading reviews to raw table.
+[2025-06-29T11:05:34.990+0000] {subprocess.py:93} INFO - Raw data loading process complete.
+[2025-06-29T11:05:34.990+0000] {subprocess.py:93} INFO - Database connection closed.
+[2025-06-29T11:05:35.146+0000] {subprocess.py:97} INFO - Command exited with return code 0
+[2025-06-29T11:05:35.216+0000] {taskinstance.py:1400} INFO - Marking task as SUCCESS. dag_id=amazon_reviews_raw_data_ingestion, task_id=data_loading, execution_date=20250629T110504, start_date=20250629T110508, end_date=20250629T110535
+[2025-06-29T11:05:35.256+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 0
+[2025-06-29T11:05:35.282+0000] {taskinstance.py:2778} INFO - 0 downstream tasks scheduled from follow-on schedule check

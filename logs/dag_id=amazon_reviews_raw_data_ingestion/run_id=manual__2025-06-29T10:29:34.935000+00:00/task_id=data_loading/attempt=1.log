@@ -1,0 +1,27 @@
+[2025-06-29T10:29:37.247+0000] {taskinstance.py:1159} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: amazon_reviews_raw_data_ingestion.data_loading manual__2025-06-29T10:29:34.935000+00:00 [queued]>
+[2025-06-29T10:29:37.251+0000] {taskinstance.py:1159} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: amazon_reviews_raw_data_ingestion.data_loading manual__2025-06-29T10:29:34.935000+00:00 [queued]>
+[2025-06-29T10:29:37.251+0000] {taskinstance.py:1361} INFO - Starting attempt 1 of 1
+[2025-06-29T10:29:37.256+0000] {taskinstance.py:1382} INFO - Executing <Task(BashOperator): data_loading> on 2025-06-29 10:29:34.935000+00:00
+[2025-06-29T10:29:37.262+0000] {standard_task_runner.py:57} INFO - Started process 266 to run task
+[2025-06-29T10:29:37.265+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'amazon_reviews_raw_data_ingestion', 'data_loading', 'manual__2025-06-29T10:29:34.935000+00:00', '--job-id', '7', '--raw', '--subdir', 'DAGS_FOLDER/jet_***_app.py', '--cfg-path', '/tmp/tmpkyxt8fz9']
+[2025-06-29T10:29:37.271+0000] {standard_task_runner.py:85} INFO - Job 7: Subtask data_loading
+[2025-06-29T10:29:37.305+0000] {task_command.py:416} INFO - Running <TaskInstance: amazon_reviews_raw_data_ingestion.data_loading manual__2025-06-29T10:29:34.935000+00:00 [running]> on host 0c2d3040449f
+[2025-06-29T10:29:37.349+0000] {taskinstance.py:1662} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='amazon_reviews_raw_data_ingestion' AIRFLOW_CTX_TASK_ID='data_loading' AIRFLOW_CTX_EXECUTION_DATE='2025-06-29T10:29:34.935000+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2025-06-29T10:29:34.935000+00:00'
+[2025-06-29T10:29:37.351+0000] {subprocess.py:63} INFO - Tmp dir root location: /tmp
+[2025-06-29T10:29:37.352+0000] {subprocess.py:75} INFO - Running command: ['/bin/bash', '-c', 'python3 /opt/***/utils/load_raw_data.py']
+[2025-06-29T10:29:37.360+0000] {subprocess.py:86} INFO - Output:
+[2025-06-29T10:29:37.910+0000] {subprocess.py:93} INFO - Starting raw data ingestion...
+[2025-06-29T10:29:37.911+0000] {subprocess.py:93} INFO - Error connecting to the database: connection to server at "localhost" (::1), port 5432 failed: Connection refused
+[2025-06-29T10:29:37.912+0000] {subprocess.py:93} INFO - 	Is the server running on that host and accepting TCP/IP connections?
+[2025-06-29T10:29:37.912+0000] {subprocess.py:93} INFO - connection to server at "localhost" (127.0.0.1), port 5432 failed: Connection refused
+[2025-06-29T10:29:37.912+0000] {subprocess.py:93} INFO - 	Is the server running on that host and accepting TCP/IP connections?
+[2025-06-29T10:29:37.912+0000] {subprocess.py:93} INFO - 
+[2025-06-29T10:29:37.912+0000] {subprocess.py:93} INFO - An error occurred during raw data loading: connection to server at "localhost" (::1), port 5432 failed: Connection refused
+[2025-06-29T10:29:37.912+0000] {subprocess.py:93} INFO - 	Is the server running on that host and accepting TCP/IP connections?
+[2025-06-29T10:29:37.912+0000] {subprocess.py:93} INFO - connection to server at "localhost" (127.0.0.1), port 5432 failed: Connection refused
+[2025-06-29T10:29:37.912+0000] {subprocess.py:93} INFO - 	Is the server running on that host and accepting TCP/IP connections?
+[2025-06-29T10:29:37.913+0000] {subprocess.py:93} INFO - 
+[2025-06-29T10:29:37.973+0000] {subprocess.py:97} INFO - Command exited with return code 0
+[2025-06-29T10:29:37.992+0000] {taskinstance.py:1400} INFO - Marking task as SUCCESS. dag_id=amazon_reviews_raw_data_ingestion, task_id=data_loading, execution_date=20250629T102934, start_date=20250629T102937, end_date=20250629T102937
+[2025-06-29T10:29:38.027+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 0
+[2025-06-29T10:29:38.045+0000] {taskinstance.py:2778} INFO - 0 downstream tasks scheduled from follow-on schedule check
