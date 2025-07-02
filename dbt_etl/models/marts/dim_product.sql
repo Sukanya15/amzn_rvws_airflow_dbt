@@ -1,9 +1,19 @@
--- -- models/marts/dim_product.sql
--- SELECT
---     product_id,
---     COALESCE(product_title, 'Unknown Product Title') AS product_title,
---     COALESCE(product_brand, 'Unknown Brand') AS brand,
---     COALESCE(first_category, sales_category, 'Uncategorized') AS category,
---     COALESCE(product_price, 0.0) AS price
--- FROM
---     {{ ref('processed_metadata_category') }}
+{{ config(
+    materialized='table',
+    unique_key='product_id'
+) }}
+
+SELECT
+    product_id::TEXT AS product_id,
+    product_title::TEXT AS product_title,
+    brand::TEXT AS brand,
+    category::TEXT AS category,
+    price::FLOAT AS price 
+FROM {{ source('public_data', 'stg_metadata_category') }}
+WHERE product_id IS NOT NULL
+GROUP BY
+    product_id,
+    product_title,
+    brand,
+    category,
+    price

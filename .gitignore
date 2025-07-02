@@ -5,12 +5,11 @@ __pycache__/
 *.pyc
 
 # dbt artifacts and logs
-dbt_project/target/
-dbt_project/logs/
-dbt_project/dbt_packages/
-dbt_project/profiles.yml 
+dbt_etl/target/
+dbt_etl/logs/
+dbt_etl/dbt_packages/
+dbt_etl/profiles.yml 
 .dbt/
-!/Users/nfn8y/.dbt/profiles.yml 
 
 # Airflow specific (if applicable)
 airflow/__pycache__/

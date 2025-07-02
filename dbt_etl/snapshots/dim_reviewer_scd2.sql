@@ -1,4 +1,3 @@
--- snapshots/dim_reviewer_scd2.sql
 {% snapshot dim_reviewer_scd2 %}
 
 {{
@@ -15,9 +14,8 @@ SELECT
     reviewer_id,
     reviewer_name
 FROM
-    {{ ref('processed_reviews_data') }}
+    {{ source('public_data', 'stg_reviews_data') }}
 WHERE
-    reviewer_id IS NOT NULL -- Ensure we only track valid reviewer IDs
-    -- You might add a filter here for reviewers you want to exclude or only include certain types
+    reviewer_id IS NOT NULL
 
 {% endsnapshot %}

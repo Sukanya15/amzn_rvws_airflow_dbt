@@ -1,0 +1,12 @@
+dbt_etl:
+  outputs:
+    dev:
+      dbname: amazon_reviews_dwh
+      host: postgres
+      pass: airflow
+      port: 5432
+      schema: public
+      threads: 1
+      type: postgres
+      user: airflow
+  target: dev

@@ -1,128 +1,147 @@
 import pandas as pd
 import psycopg2
-from psycopg2 import sql
+from psycopg2 import sql, extras
 from datetime import datetime
 
+from db_conn import get_db_connection, create_processed_reviews_table
+
+RAW_TABLE_NAME = "raw_data_reviews_data"
+PROCESSED_TABLE_NAME = "processed_reviews_data"
+
 def process_review_data():
-    # Database connection parameters
-    # Use the service name 'postgres' as the host when running within Docker Compose
-    DB_HOST = "postgres"
-    DB_NAME = "airflow"
-    DB_USER = "airflow"
-    DB_PASSWORD = "airflow"
-    DB_PORT = "5432"
-
-    RAW_TABLE_NAME = "raw_data_reviews_data"
-    PROCESSED_TABLE_NAME = "processed_reviews_data"
-
     conn = None
     try:
-        # Establish connection to PostgreSQL
-        conn = psycopg2.connect(
-            host=DB_HOST,
-            database=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            port=DB_PORT
-        )
-        cur = conn.cursor()
+        conn = get_db_connection()
         print("Successfully connected to PostgreSQL database.")
 
-        # Read existing data from the raw table
-        print(f"Reading data from '{RAW_TABLE_NAME}'...")
-        query = sql.SQL("SELECT * FROM public.{}").format(sql.Identifier(RAW_TABLE_NAME))
-        df = pd.read_sql(query.as_string(conn), conn)
-        print(f"Successfully read {len(df)} rows from '{RAW_TABLE_NAME}'.")
+        create_processed_reviews_table(conn, PROCESSED_TABLE_NAME)
 
-        try:
-            df['unixreviewtime_dt'] = pd.to_datetime(df['unixreviewtime'], unit='s', errors='coerce')
-            print("Converted 'unixreviewtime' to datetime format.")
-        except Exception as e:
-            print(f"Warning: Could not convert 'unixreviewtime'. Error: {e}")
-            df['unixreviewtime_dt'] = None 
+        print(f"Processing data from '{RAW_TABLE_NAME}' in chunks...")
 
-        try:
-            df['reviewtime_dt'] = pd.to_datetime(df['reviewtime'], format='%m %d, %Y', errors='coerce')
-            print("Converted 'reviewtime' to datetime format.")
-        except Exception as e:
-            print(f"Warning: Could not convert 'reviewtime'. Error: {e}")
-            df['reviewtime_dt'] = None
+        chunk_size = 5000 
 
-        processed_df = df[[
-            'reviewerid', 'asin', 'reviewername', 'helpful', 'reviewtext',
-            'overall', 'summary', 'unixreviewtime_dt', 'reviewtime_dt',
+        raw_cols_to_read = [
+            'reviewerid', 'asin', 'reviewername',
+            'overall', 'summary', 'unixreviewtime', 'reviewtime',
             'ingestion_timestamp'
-        ]].copy()
+        ]
 
-        # Rename columns to their desired SQL names if different
-        processed_df.rename(columns={
-            'reviewerid': 'reviewer_id',
-            'asin': 'product_id',
-            'reviewername': 'reviewer_name',
-            'helpful': 'helpful_votes',
-            'reviewtext': 'review_text',
-            'overall': 'rating',
-            'summary': 'review_summary',
-            'unixreviewtime_dt': 'unix_review_timestamp',
-            'reviewtime_dt': 'review_timestamp',
-            'ingestion_timestamp': 'ingestion_timestamp'
-        }, inplace=True)
+        with conn.cursor() as count_cur:
+            count_query = sql.SQL("SELECT COUNT(*) FROM public.{}").format(
+                sql.Identifier(RAW_TABLE_NAME)
+            )
+            count_cur.execute(count_query)
+            total_rows = count_cur.fetchone()[0]
+            print(f"Total rows in '{RAW_TABLE_NAME}': {total_rows}")
 
-        print(f"Processed data head:\n{processed_df.head()}")
+        with conn.cursor(name="reviews_fetch_cursor") as fetch_cur:
+            fetch_cur.itersize = chunk_size
 
-        # 4. Create the new processed table
-        print(f"Creating table '{PROCESSED_TABLE_NAME}' if it does not exist...")
-        create_table_query = sql.SQL("""
-            CREATE TABLE IF NOT EXISTS public.{} (
-                reviewer_id TEXT,
-                product_id TEXT,
-                reviewer_name TEXT,
-                helpful_votes TEXT,
-                review_text TEXT,
-                rating NUMERIC(2,1),
-                review_summary TEXT,
-                unix_review_timestamp TIMESTAMP WITHOUT TIME ZONE,
-                review_timestamp DATE, -- Or TIMESTAMP if you need time part
-                ingestion_timestamp TIMESTAMP WITHOUT TIME ZONE
-            );
-        """).format(sql.Identifier(PROCESSED_TABLE_NAME))
-        cur.execute(create_table_query)
-        conn.commit()
-        print(f"Table '{PROCESSED_TABLE_NAME}' created or already exists.")
+            select_query = sql.SQL("SELECT {} FROM public.{}").format(
+                sql.SQL(', ').join(map(sql.Identifier, raw_cols_to_read)),
+                sql.Identifier(RAW_TABLE_NAME)
+            )
+            fetch_cur.execute(select_query)
 
-        print(f"Inserting {len(processed_df)} rows into '{PROCESSED_TABLE_NAME}'...")
-        
-        cols = ['reviewer_id', 'product_id', 'reviewer_name', 'helpful_votes', 'review_text',
-                'rating', 'review_summary', 'unix_review_timestamp', 'review_timestamp',
-                'ingestion_timestamp']
-        
-        data_to_insert = [tuple(row.replace({pd.NA: None, pd.NaT: None}).tolist()) for index, row in processed_df[cols].iterrows()]
+            column_names = [desc[0] for desc in fetch_cur.description]
 
-        insert_query = sql.SQL("""
-            INSERT INTO public.{} (
-                reviewer_id, product_id, reviewer_name, helpful_votes, review_text,
-                rating, review_summary, unix_review_timestamp, review_timestamp,
-                ingestion_timestamp
-            ) VALUES ({})
-        """).format(
-            sql.Identifier(PROCESSED_TABLE_NAME),
-            sql.SQL(', ').join(sql.Placeholder() * len(cols))
-        )
+            rows_processed = 0
+            iterator = 0
+            while True:
+                iterator = iterator + 1
+                print(f"Fetching next {chunk_size} rows... {iterator} time")
+                try:
+                    chunk_rows = fetch_cur.fetchmany(chunk_size)
+                    if not chunk_rows:
+                        print("DEBUG: No more rows to fetch (empty list returned). Breaking loop.")
+                        break
 
-        cur.executemany(insert_query, data_to_insert)
-        conn.commit()
-        print(f"Successfully inserted {len(processed_df)} rows into '{PROCESSED_TABLE_NAME}'.")
+                except psycopg2.ProgrammingError as e:
+                    if "no results to fetch" in str(e).lower():
+                        print(f"DEBUG: Caught psycopg2.ProgrammingError 'no results to fetch'. Assuming end of data. Error: {e}")
+                        break
+                    else:
+                        print(f"Error during fetchmany (ProgrammingError): {e}")
+                        raise
+
+                except Exception as e:
+                    print(f"Error during fetchmany (unexpected exception): {e}")
+                    raise
+
+                chunk_df = pd.DataFrame(chunk_rows, columns=column_names)
+
+                try:
+                    chunk_df['unix_review_timestamp'] = pd.to_datetime(chunk_df['unixreviewtime'], unit='s', errors='coerce')
+                except Exception as e:
+                    print(f"Warning: Could not convert 'unixreviewtime' in chunk. Error: {e}")
+                    chunk_df['unix_review_timestamp'] = pd.NaT
+
+                try:
+                    chunk_df['review_timestamp'] = pd.to_datetime(chunk_df['reviewtime'], format='%m %d, %Y', errors='coerce').dt.date
+                except Exception as e:
+                    print(f"Warning: Could not convert 'reviewtime' in chunk. Error: {e}")
+                    chunk_df['review_timestamp'] = None
+
+                chunk_df['rating'] = pd.to_numeric(chunk_df['overall'], errors='coerce').round(1)
+
+                processed_chunk_df = chunk_df[[
+                    'reviewerid', 'asin', 'reviewername',
+                    'rating', 'summary', 'unix_review_timestamp', 'review_timestamp',
+                    'ingestion_timestamp'
+                ]].copy()
+
+                processed_chunk_df.rename(columns={
+                    'reviewerid': 'reviewer_id',
+                    'asin': 'product_id',
+                    'reviewername': 'reviewer_name',
+                    'summary': 'review_summary'
+                }, inplace=True)
+
+                target_cols = [
+                    'reviewer_id', 'product_id', 'reviewer_name',
+                    'rating', 'review_summary', 'unix_review_timestamp', 'review_timestamp',
+                    'ingestion_timestamp'
+                ]
+
+                data_to_insert = []
+                for index, row in processed_chunk_df.iterrows():
+                    try:
+                        row_values = [row[col] for col in target_cols]
+                        cleaned_row = [None if pd.isna(x) or pd.isnull(x) else x for x in row_values]
+                        data_to_insert.append(tuple(cleaned_row))
+                    except Exception as e:
+                        print(f"Error preparing row {index} for insertion in chunk: {e}. Row data: {row.to_dict()}")
+                        continue
+
+                if data_to_insert:
+                    with conn.cursor() as insert_cur:
+                        insert_sql = sql.SQL("""
+                            INSERT INTO public.{} ({}) VALUES %s
+                            ON CONFLICT (reviewer_id, product_id, unix_review_timestamp) DO NOTHING;
+                        """).format(
+                            sql.Identifier(PROCESSED_TABLE_NAME),
+                            sql.SQL(', ').join(map(sql.Identifier, target_cols))
+                        )
+                        extras.execute_values(insert_cur, insert_sql, data_to_insert, page_size=chunk_size)
+                    
+                    rows_processed += len(data_to_insert)
+                    print(f"  Processed and inserted {len(data_to_insert)} rows. Total rows processed: {rows_processed}")
+            
+            conn.commit()
+
+            print(f"Finished processing reviews. Total rows inserted: {rows_processed}")
 
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"An unexpected error occurred during review data processing: {e}")
         if conn:
             conn.rollback()
+        raise
+
     finally:
-        if cur:
-            cur.close()
         if conn:
             conn.close()
         print("PostgreSQL connection closed.")
 
 if __name__ == "__main__":
+    print("Starting review data processing...")
     process_review_data()

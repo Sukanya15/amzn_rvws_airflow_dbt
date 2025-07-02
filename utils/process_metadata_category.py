@@ -1,39 +1,25 @@
 import pandas as pd
-import psycopg2
-from psycopg2 import sql
 import ast
+import psycopg2
+from psycopg2 import sql, extras
+from db_conn import get_db_connection, create_processed_metadata_table
+
+RAW_TABLE_NAME = "raw_data_metadata_category"
+PROCESSED_TABLE_NAME = "processed_metadata_category"
 
 def process_metadata_data():
-    # Database connection parameters
-    DB_HOST = "postgres"
-    DB_NAME = "airflow"
-    DB_USER = "airflow"
-    DB_PASSWORD = "airflow"
-    DB_PORT = "5432"
-
-    RAW_TABLE_NAME = "raw_data_metadata_category"
-    PROCESSED_TABLE_NAME = "processed_metadata_category"
-
     conn = None
+    cur = None
     try:
-        # Establish connection to PostgreSQL
-        conn = psycopg2.connect(
-            host=DB_HOST,
-            database=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            port=DB_PORT
-        )
+        conn = get_db_connection()
         cur = conn.cursor()
         print("Successfully connected to PostgreSQL database.")
 
-        # Read existing data from the raw table
         print(f"Reading data from '{RAW_TABLE_NAME}'...")
         query = sql.SQL("SELECT * FROM public.{}").format(sql.Identifier(RAW_TABLE_NAME))
         df = pd.read_sql(query.as_string(conn), conn)
         print(f"Successfully read {len(df)} rows from '{RAW_TABLE_NAME}'.")
 
-        # Process 'salesrank' column
         df['sales_category'] = None
         df['sales_rank'] = None
 
@@ -45,7 +31,10 @@ def process_metadata_data():
                     if isinstance(salesrank_dict, dict) and salesrank_dict:
                         key, value = next(iter(salesrank_dict.items()))
                         df.at[index, 'sales_category'] = key
-                        df.at[index, 'sales_rank'] = int(value)
+                        try:
+                            df.at[index, 'sales_rank'] = int(value)
+                        except (ValueError, TypeError):
+                            df.at[index, 'sales_rank'] = None
                 except (ValueError, SyntaxError) as e:
                     print(f"Warning: Could not parse salesrank '{salesrank_str}' at index {index}. Error: {e}")
             elif salesrank_str == '{}':
@@ -54,7 +43,6 @@ def process_metadata_data():
 
         print("Processed 'salesrank' into 'sales_category' and 'sales_rank'.")
 
-        # Process 'categories' column
         df['first_category'] = None
 
         for index, row in df.iterrows():
@@ -69,7 +57,7 @@ def process_metadata_data():
                              df.at[index, 'first_category'] = categories_list[0]
                 except (ValueError, SyntaxError) as e:
                     print(f"Warning: Could not parse categories '{categories_str}' at index {index}. Error: {e}")
-            
+
         print("Processed 'categories' to extract 'first_category'.")
 
         processed_df = df[[
@@ -77,7 +65,6 @@ def process_metadata_data():
             'title', 'description', 'price', 'related', 'brand', 'ingestion_timestamp'
         ]].copy()
 
-        # Rename columns to their desired SQL names if different
         processed_df.rename(columns={
             'metadataid': 'metadata_id',
             'asin': 'product_id',
@@ -95,71 +82,53 @@ def process_metadata_data():
 
         print(f"Processed data head:\n{processed_df.head()}")
 
-        print(f"Creating table '{PROCESSED_TABLE_NAME}' if it does not exist...")
-        create_table_query = sql.SQL("""
-            CREATE TABLE IF NOT EXISTS public.{} (
-                metadata_id TEXT,
-                product_id TEXT PRIMARY KEY,
-                image_url TEXT,
-                sales_category TEXT,
-                sales_rank INTEGER,
-                first_category TEXT,
-                product_title TEXT,
-                product_description TEXT,
-                product_price NUMERIC,
-                related_products TEXT,
-                product_brand TEXT,
-                ingestion_timestamp TIMESTAMP WITHOUT TIME ZONE,
-                
-            );
-        """).format(sql.Identifier(PROCESSED_TABLE_NAME))
-        cur.execute(create_table_query)
-        conn.commit()
-        print(f"Table '{PROCESSED_TABLE_NAME}' created or already exists.")
+        create_processed_metadata_table(conn, PROCESSED_TABLE_NAME)
 
-        # 5. Insert cleansed data into the new processed table
-        print(f"Inserting {len(processed_df)} rows into '{PROCESSED_TABLE_NAME}'...")
-        
-        # Define the columns for insertion explicitly
-        cols = [
-            'metadataid', 'asin', 'imurl', 'sales_category', 'sales_rank', 'first_category',
-            'title', 'description', 'price', 'related', 'brand', 'ingestion_timestamp'
+        print(f"Preparing {len(processed_df)} rows for insertion into '{PROCESSED_TABLE_NAME}'...")
+
+        target_cols = [
+            'metadata_id', 'product_id', 'image_url', 'sales_category', 'sales_rank',
+            'first_category', 'product_title', 'product_description', 'product_price',
+            'related_products', 'product_brand', 'ingestion_timestamp'
         ]
-        
+
         data_to_insert = []
-        for index, row in processed_df[cols].iterrows():
+        for index, row in processed_df.iterrows():
             try:
-                row_list = row.tolist()
-                if 'price' in row and pd.isna(row['price']):
-                     row_list[cols.index('price')] = None
-                elif 'price' in row and not pd.api.types.is_numeric_dtype(type(row['price'])):
+                row_values = [row[col] for col in target_cols]
+
+                price_index = target_cols.index('product_price')
+                original_price = row_values[price_index]
+                if pd.isna(original_price):
+                    row_values[price_index] = None
+                else:
                     try:
-                        row_list[cols.index('price')] = float(row['price'])
-                    except ValueError:
-                        row_list[cols.index('price')] = None
-                
-                cleaned_row = [None if pd.isna(x) else x for x in row_list]
+                        row_values[price_index] = float(original_price)
+                    except (ValueError, TypeError):
+                        row_values[price_index] = None
+
+                cleaned_row = [None if pd.isna(x) else x for x in row_values]
                 data_to_insert.append(tuple(cleaned_row))
             except Exception as e:
-                print(f"Error preparing row {index} for insertion: {e}. Row: {row}")
-                continue 
+                print(f"Error preparing row {index} for insertion: {e}. Row data: {row.to_dict()}")
+                continue
 
+        print(f"Inserting {len(data_to_insert)} rows into '{PROCESSED_TABLE_NAME}' using execute_values...")
 
-        insert_query = sql.SQL("""
-            INSERT INTO public.{} ({}) VALUES ({})
-            ON CONFLICT (asin) DO NOTHING; -- Assuming 'asin' is unique and you want to skip duplicates
+        insert_sql = sql.SQL("""
+            INSERT INTO public.{} ({}) VALUES %s
+            ON CONFLICT (product_id) DO NOTHING;
         """).format(
             sql.Identifier(PROCESSED_TABLE_NAME),
-            sql.SQL(', ').join(map(sql.Identifier, cols)),
-            sql.SQL(', ').join(sql.Placeholder() * len(cols))
+            sql.SQL(', ').join(map(sql.Identifier, target_cols))
         )
 
-        cur.executemany(insert_query, data_to_insert)
+        extras.execute_values(cur, insert_sql, data_to_insert, page_size=10000)
         conn.commit()
         print(f"Successfully inserted {len(data_to_insert)} rows into '{PROCESSED_TABLE_NAME}'.")
 
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"An error occurred during metadata processing: {e}")
         if conn:
             conn.rollback()
     finally:
@@ -170,4 +139,5 @@ def process_metadata_data():
         print("PostgreSQL connection closed.")
 
 if __name__ == "__main__":
+    print("Starting metadata processing...")
     process_metadata_data()
