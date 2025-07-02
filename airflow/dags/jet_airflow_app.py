@@ -40,23 +40,27 @@ process_metadata_category = BashOperator(task_id='process_metadata_category_for_
                      bash_command='/opt/venv/bin/python3 /opt/airflow/utils/process_and_load_metadata.py',
                      dag=data_pipeline_dag)
 
+dbt_run_staging_models = BashOperator(task_id='dbt_run_staging_models',
+                     bash_command=activate_and_run_dbt('run --models staging --full-refresh'),
+                     cwd=DBT_PROJECT_DIR, dag=data_pipeline_dag)
+
 dbt_snapshot_task = BashOperator(task_id='dbt_run_snapshots',
                      bash_command=activate_and_run_dbt('snapshot'),
                      cwd=DBT_PROJECT_DIR, dag=data_pipeline_dag)
 
-dbt_run_task = BashOperator(task_id='dbt_run_models',
-                     bash_command=activate_and_run_dbt('run'),
+dbt_run_core_models = BashOperator(task_id='dbt_run_core_models',
+                     bash_command=activate_and_run_dbt('run --exclude staging'),
                      cwd=DBT_PROJECT_DIR, dag=data_pipeline_dag)
 
 dbt_test_task = BashOperator(task_id='dbt_run_tests',
                      bash_command=activate_and_run_dbt('test'),
                      cwd=DBT_PROJECT_DIR, dag=data_pipeline_dag)
 
-#ordering tasks
-[process_review_data, process_metadata_category] >> dbt_run_task
+# Task order
+[process_review_data, process_metadata_category] >> dbt_run_staging_models
 
-dbt_run_task >> dbt_snapshot_task
+dbt_run_staging_models >> dbt_snapshot_task
 
-dbt_snapshot_task >> dbt_test_task
+dbt_snapshot_task >> dbt_run_core_models
 
-# load_raw_data >> [process_review_data, process_metadata_category]
+dbt_run_core_models >> dbt_test_task

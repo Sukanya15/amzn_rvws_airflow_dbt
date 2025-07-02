@@ -1,28 +1,38 @@
 {{ config(
     materialized='incremental',
     unique_key='review_sk',
-    on_schema_change='fail'
+    on_schema_change='fail',
+    incremental_strategy='delete+insert'
 ) }}
 
 SELECT
     {{ dbt_utils.generate_surrogate_key([
-        'pr.reviewer_id',
-        'dp.product_id',
-        'pr.unix_review_timestamp'
+        'reviews.reviewer_id',
+        'reviews.product_id',
+        'reviews.unix_review_timestamp'
     ]) }} AS review_sk,
 
-    pr.reviewer_id::TEXT AS reviewer_id,
-    dp.product_id::TEXT AS product_id,
-    TO_CHAR(pr.review_timestamp, 'YYYYMMDD')::INTEGER AS date_sk,
+    reviews.reviewer_id::TEXT AS reviewer_id,
+    products_scd.product_id::TEXT AS product_id,
+    dates.date_sk AS date_sk,
 
-    pr.rating::FLOAT AS rating,
-    pr.sentiment::TEXT AS sentiment
+    reviews.rating::FLOAT AS rating,
+    reviews.sentiment::TEXT AS sentiment,
+    reviews.ingestion_timestamp
 
-FROM {{ source('public_data', 'stg_reviews_data') }} pr
+FROM {{ ref('stg_reviews_data') }} reviews 
 
-LEFT JOIN {{ ref('dim_product') }} dp
-    ON pr.product_id::TEXT = dp.product_id::TEXT
+LEFT JOIN {{ ref('dim_product_scd2') }} products_scd
+    ON reviews.product_id::TEXT = products_scd.product_id::TEXT
+    AND reviews.review_timestamp BETWEEN products_scd.dbt_valid_from AND COALESCE(products_scd.dbt_valid_to, '9999-12-31'::TIMESTAMP)
+
+LEFT JOIN {{ ref('dim_reviewer_scd2') }} reviewers_scd
+    ON reviews.reviewer_id::TEXT = reviewers_scd.reviewer_id::TEXT
+    AND reviews.review_timestamp BETWEEN reviewers_scd.dbt_valid_from AND COALESCE(reviewers_scd.dbt_valid_to, '9999-12-31'::TIMESTAMP)
+
+LEFT JOIN {{ ref('dim_date') }} dates
+    ON reviews.review_timestamp::DATE = dates.full_date
 
 {% if is_incremental() %}
-    WHERE pr.ingestion_timestamp > (SELECT MAX(ingestion_timestamp) FROM {{ this }})
+    WHERE reviews.ingestion_timestamp > (SELECT MAX(ingestion_timestamp) FROM {{ this }})
 {% endif %}

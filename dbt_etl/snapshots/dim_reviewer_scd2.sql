@@ -12,9 +12,10 @@
 
 SELECT
     reviewer_id,
-    reviewer_name
+    reviewer_name,
+    review_summary
 FROM
-    {{ source('public_data', 'stg_reviews_data') }}
+    {{ ref('stg_reviews_data') }}
 WHERE
     reviewer_id IS NOT NULL
 

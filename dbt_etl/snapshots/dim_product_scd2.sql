@@ -13,11 +13,11 @@
 SELECT
     product_id,
     product_title,
-    COALESCE(first_category, sales_category, 'Uncategorized') AS category,
+    COALESCE(first_category, 'Uncategorized') AS category,
     product_brand AS brand,
     product_price
 FROM
-    {{ source('public_data', 'stg_metadata_category') }}
+    {{ ref('stg_metadata_category') }}
 WHERE
     product_id IS NOT NULL
 
