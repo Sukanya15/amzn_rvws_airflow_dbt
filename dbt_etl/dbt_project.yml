@@ -18,10 +18,12 @@ models:
   dbt_etl:
     marts:
       materialized: table # Dimension tables as tables
-      +schema: "public"
 
       fact_review:
         materialized: incremental
         unique_key: review_sk
         on_schema_change: 'fail' 
+
+    staging:
+      materialized: table
 
