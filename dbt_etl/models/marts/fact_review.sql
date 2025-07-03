@@ -16,6 +16,7 @@ SELECT
     products_scd.product_id::TEXT AS product_id,
     dates.date_sk AS date_sk,
 
+    reviews.review_summary::TEXT AS review_summary,
     reviews.rating::FLOAT AS rating,
     reviews.sentiment::TEXT AS sentiment,
     reviews.ingestion_timestamp

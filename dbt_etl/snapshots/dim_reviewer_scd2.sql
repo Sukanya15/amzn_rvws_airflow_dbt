@@ -12,8 +12,7 @@
 
 SELECT
     reviewer_id,
-    reviewer_name,
-    review_summary
+    reviewer_name
 FROM
     {{ ref('stg_reviews_data') }}
 WHERE

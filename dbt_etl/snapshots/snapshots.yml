@@ -18,6 +18,11 @@ snapshots:
           - not_null
       - name: dbt_valid_to
       - name: dbt_updated_at
+      - name: dbt_active
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
 
   - name: dim_product_scd2
     columns:
@@ -48,3 +53,8 @@ snapshots:
           - not_null
       - name: dbt_valid_to
       - name: dbt_updated_at
+      - name: dbt_active
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
