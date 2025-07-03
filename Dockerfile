@@ -32,9 +32,4 @@ RUN /opt/venv/bin/pip install --no-cache-dir -r /opt/requirements.txt
 COPY . /opt/airflow/
 WORKDIR /opt/airflow
 
-# RUN mkdir -p /opt/airflow/textblob_data
-
-# ENV TEXTBLOB_DATA_DIR=/opt/airflow/textblob_data
-# RUN python -m textblob.download_corpora -d /opt/airflow/textblob_data
-
 USER airflow

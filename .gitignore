@@ -38,3 +38,7 @@ Thumbs.db
 
 #All imported data files
 *.csv
+
+#reports
+Average review rating per category per month_files/*
+*.html

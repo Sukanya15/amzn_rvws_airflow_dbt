@@ -1,48 +1,43 @@
-SELECT count(*)
-FROM raw_data.stg_xkcd_comics
-LIMIT 1000; 
-
 -- Average review rating per category per month:
 SELECT
-    DD.Year,
-    DD.Month,
-    DP.Category,
-    AVG(FR.Rating) AS AverageRating
+    DD.year_number,
+    DD.month_name,
+    DP.category,
+    AVG(FR.rating) AS avg_rating
 FROM
-    FactReview FR
+    fact_review FR
 JOIN
-    DimDate DD ON FR.DatePK = DD.DatePK
+    dim_date DD ON FR.date_sk = DD.date_day
 JOIN
-    DimProduct DP ON FR.ProductPK = DP.ProductPK
+    dim_product_scd2 DP ON FR.product_id = DP.product_id
 GROUP BY
-    DD.Year,
-    DD.Month,
-    DP.Category
+    DD.year_number,
+    DD.month_name,
+    DP.category
 ORDER BY
-    DD.Year,
-    DD.Month,
-    DP.Category;
+    DD.year_number,
+    DD.month_name,
+    DP.category;
 
 -- Analysis of review rating per brand per month
 SELECT
-    DD.Year,
-    DD.Month,
-    DP.Brand,
-    AVG(FR.Rating) AS AverageRating,
-    COUNT(FR.ReviewPK) AS NumberOfReviews, -- Example of other analysis metric
-    MIN(FR.Rating) AS MinimumRating,
-    MAX(FR.Rating) AS MaximumRating
+    DD.year_number,
+    DD.month_name,
+    DP.brand,
+    AVG(FR.rating) AS avg_rating
 FROM
-    FactReview FR
+    fact_review FR
 JOIN
-    DimDate DD ON FR.DatePK = DD.DatePK
+    dim_date DD ON FR.date_sk = DD.date_day
 JOIN
-    DimProduct DP ON FR.ProductPK = DP.ProductPK
+    dim_product_scd2 DP ON FR.product_id = DP.product_id
+WHERE
+	brand IS NOT NULL
 GROUP BY
-    DD.Year,
-    DD.Month,
-    DP.Brand
+    DD.year_number,
+    DD.month_name,
+    DP.brand
 ORDER BY
-    DD.Year,
-    DD.Month,
-    DP.Brand;
+    DD.year_number,
+    DD.month_name,
+    DP.brand;

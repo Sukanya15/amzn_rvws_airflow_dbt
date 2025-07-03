@@ -80,6 +80,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/utils:/opt/airflow/utils
     - ${AIRFLOW_PROJ_DIR:-.}/csv_files:/opt/airflow/csv_files
     - ${AIRFLOW_PROJ_DIR:-.}/dbt_etl:/opt/dbt/dbt_etl
+    # - ./sentiment_api:/app
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -107,17 +108,6 @@ services:
       start_period: 5s
     restart: always
 
-  db_postgres:
-    build: . 
-    environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_DB: airflow
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-      POSTGRES_PORT: 5432
-    depends_on:
-      - postgres
-
   pgadmin:
     container_name: pgadmin4_container2
     image: dpage/pgadmin4
@@ -139,6 +129,24 @@ services:
       retries: 50
       start_period: 30s
     restart: always
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase_app
+    ports:
+      - "3000:3000"
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_HOST: postgres
+      MB_DB_PORT: 5432
+      MB_DB_USER: airflow
+      MB_DB_PASS: airflow
+      MB_DB_DBNAME: metabase_app_db
+    volumes:
+      - metabase_data:/metabase-data
+    depends_on:
+      - postgres
+    restart: unless-stopped
 
   airflow-webserver:
     <<: *airflow-common
@@ -330,3 +338,4 @@ services:
 
 volumes:
   postgres-db-volume:
+  metabase_data:

@@ -7,4 +7,10 @@
  
 docker compose down -v --rmi all
 
- docker compose build
+docker compose build
+
+curl -X POST -H "Content-Type: application/json" \
+     -d '{"texts": ["This product is amazing!", "I am very disappointed with this item."]}' \
+     http://localhost:5001/sentiment
+
+docker-compose up -d --force-recreate --build sentiment-api
