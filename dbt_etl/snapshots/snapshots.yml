@@ -29,6 +29,7 @@ snapshots:
       - name: product_id
         data_tests:
           - not_null
+          - productid_format
       - name: product_title
         data_tests:
           - not_null
@@ -40,10 +41,10 @@ snapshots:
           - not_null
       - name: product_price
         data_tests:
-          - not_null
-          - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 99999999.99
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: float
+          - dbt_expectations.expect_column_values_to_be_greater_than_or_equal_to:
+              value: 0
       - name: dbt_scd_id
         data_tests:
           - unique

@@ -18,7 +18,7 @@ SELECT
 
     reviews.review_summary::TEXT AS review_summary,
     reviews.rating::FLOAT AS rating,
-    reviews.sentiment::TEXT AS sentiment,
+    COALESCE(reviews.sentiment, 'None')::TEXT AS sentiment,
     reviews.ingestion_timestamp
 
 FROM {{ ref('stg_reviews_data') }} reviews 

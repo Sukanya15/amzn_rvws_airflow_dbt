@@ -2,7 +2,8 @@ import pandas as pd
 from psycopg2 import sql, extras
 from datetime import datetime
 import os
-# from textblob import TextBlob
+import requests
+import numpy as np
 
 from db_conn import get_db_connection, create_processed_reviews_table
 
@@ -14,23 +15,26 @@ CSV_FILES_DIR = os.path.join(project_root, 'csv_files')
 
 REVIEWS_CSV_PATH = os.path.join(CSV_FILES_DIR, 'reviews_Clothing_Shoes_and_Jewelry_5.csv')
 
-# def get_sentiment_label(text):
-#     if pd.isna(text) or not isinstance(text, str) or text.strip() == '':
-#         return None
-#     try:
-#         analysis = TextBlob(text)
-#         polarity_score = analysis.sentiment.polarity
+SENTIMENT_SERVICE_URL = os.getenv('SENTIMENT_API_URL', 'http://127.0.0.1:5001/sentiment')
 
-#         if polarity_score >= 0.05:
-#             return 'Positive'
-#         elif polarity_score <= -0.05:
-#             return 'Negative'
-#         else:
-#             return 'Neutral'
-#     except Exception as e:
-#         print(f"Error calculating sentiment for text: '{text}'. Error: {e}")
-#         return None
+API_BATCH_SIZE = 500
 
+def get_sentiments_from_service_batched(texts_list):
+    if not texts_list:
+        return []
+    try:
+        response = requests.post(
+            SENTIMENT_SERVICE_URL,
+            json={'texts': texts_list},
+            timeout=30
+        )
+        response.raise_for_status()
+        sentiment_data = response.json()
+        return sentiment_data.get('sentiments', [])
+    except requests.exceptions.RequestException as e:
+        print(f"Error connecting to sentiment service for batch. Error: {e}")
+        return [None] * len(texts_list)
+    
 def process_and_load_reviews():
     conn = None
     try:
@@ -72,9 +76,31 @@ def process_and_load_reviews():
 
                 chunk_df['ingestion_timestamp'] = datetime.now()
 
-                chunk_df['sentiment'] =  'Positive' # chunk_df['summary'].apply(get_sentiment_label)
+                if 'summary' not in chunk_df.columns:
+                    print("Warning: 'summary' column not found, falling back to 'reviewtext' for sentiment.")
+                    chunk_df['summary'] = chunk_df['reviewtext']
+                chunk_df['summary'] = chunk_df['summary'].astype(str).replace({'nan': None})
+                
+                texts_to_analyze = chunk_df['summary'].tolist()
+                
+                all_sentiments_for_chunk = []
+                for i in range(0, len(texts_to_analyze), API_BATCH_SIZE):
+                    batch_texts = texts_to_analyze[i:i + API_BATCH_SIZE]
+                    batch_texts_cleaned = [t if t is not None else "" for t in batch_texts]
+                    
+                    print(f"  Sending batch {int(i/API_BATCH_SIZE) + 1} of {len(texts_to_analyze) // API_BATCH_SIZE + (1 if len(texts_to_analyze) % API_BATCH_SIZE else 0)} to sentiment service...")
+                    sentiments_batch = get_sentiments_from_service_batched(batch_texts_cleaned)
+                    all_sentiments_for_chunk.extend(sentiments_batch)
+                
+                chunk_df['sentiment'] = all_sentiments_for_chunk
+                
+                print("Sentiment analysis for chunk completed.")
 
-                chunk_df['sentiment'] = chunk_df['sentiment'].astype(str).replace('nan', None)
+                chunk_df['sentiment'] = chunk_df['sentiment'].apply(lambda x: None if (pd.isna(x) or pd.isnull(x) or str(x).lower() == 'none') else x)
+
+                # chunk_df['sentiment'] =  'Positive' # chunk_df['summary'].apply(get_sentiment_label)
+
+                # chunk_df['sentiment'] = chunk_df['sentiment'].astype(str).replace('nan', None)
 
                 processed_chunk_df = chunk_df[[
                     'reviewerid', 'asin', 'reviewername','overall', 

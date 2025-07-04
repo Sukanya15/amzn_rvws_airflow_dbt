@@ -8,7 +8,7 @@ SELECT
     reviewer_name,
     rating,
     review_summary,
-    sentiment,
+    COALESCE(sentiment, 'None') AS sentiment,
     unix_review_timestamp,
     review_timestamp,
     ingestion_timestamp
