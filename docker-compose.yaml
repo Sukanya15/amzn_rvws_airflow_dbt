@@ -148,6 +148,23 @@ services:
       - postgres
     restart: unless-stopped
 
+  sentiment-api:
+    build:
+      context: ./sentiment_api
+      dockerfile: Dockerfile
+    container_name: sentiment_api_service
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./sentiment_api:/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:5001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
   airflow-webserver:
     <<: *airflow-common
     command: webserver
@@ -196,6 +213,7 @@ services:
       <<: *airflow-common-env
       # Required to handle warm shutdown of the celery workers properly
       # See https://airflow.apache.org/docs/docker-stack/entrypoint.html#signal-propagation
+      SENTIMENT_API_URL: http://sentiment-api:5001/sentiment
       POSTGRES_HOST: postgres
       POSTGRES_DB: airflow
       POSTGRES_USER: airflow
@@ -205,6 +223,8 @@ services:
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
+      sentiment-api:
+        condition: service_healthy
       airflow-init:
         condition: service_completed_successfully
 
